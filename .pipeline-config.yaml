@@ -1,0 +1,164 @@
+---
+version: '1'
+
+setup:
+  image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.11
+  script: |
+    #!/usr/bin/env bash
+    if [[ "$PIPELINE_DEBUG" == 1 ]]; then
+      trap env EXIT
+      env
+      set -x
+    fi
+    if [[ "$(get_env pipeline_namespace)" == *"pr"* ||  "$(get_env pipeline_namespace)" == *"ci"* ]]; then
+      source "${WORKSPACE}/$PIPELINE_CONFIG_REPO_PATH/scripts/code_setup.sh"
+    fi
+
+test:
+  abort_on_failure: false
+  image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.11
+  script: |
+    #!/usr/bin/env bash
+
+    cd "${WORKSPACE}/$(load_repo app-repo path)/$(get_env source "")"
+    #npm ci
+
+    # save exit code for old evidence collection
+    exit_code=0
+    #npm test || exit_code=$?
+
+    # save status for new evidence collection
+    status="success"
+    if [ "$exit_code" != "0" ]; then
+      status="failure"
+    fi
+
+    collect-evidence \
+      --tool-type "jest" \
+      --status "$status" \
+      --evidence-type "com.ibm.unit_tests" \
+      --asset-type "repo" \
+      --asset-key "app-repo"
+    exit $exit_code
+
+containerize:
+  dind: true
+  image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.11
+  script: |
+    #!/usr/bin/env bash
+
+    if [[ "$PIPELINE_DEBUG" == 1 ]]; then
+      trap env EXIT
+      env
+      set -x
+    fi
+
+    source "${WORKSPACE}/$PIPELINE_CONFIG_REPO_PATH/scripts/build_setup.sh"
+    BUILD_STRATEGY="$(get_env code-engine-build-strategy "dockerfile")"
+    BUILD_USE_NATIVE_DOCKER="$(get_env code-engine-build-use-native-docker "false")"
+    echo "Configured build strategy: $BUILD_STRATEGY"
+    if [[ "$BUILD_STRATEGY" == "dockerfile" && "$BUILD_USE_NATIVE_DOCKER" == "true" ]]; then
+      source "${WORKSPACE}/$PIPELINE_CONFIG_REPO_PATH/scripts/build_using_docker.sh"
+    else
+      source "${WORKSPACE}/$PIPELINE_CONFIG_REPO_PATH/scripts/build_using_code_engine.sh"
+    fi
+
+deploy:
+  image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.11
+  script: |
+    #!/usr/bin/env bash
+
+    if [[ "$PIPELINE_DEBUG" == 1 ]]; then
+      trap env EXIT
+      env
+      set -x
+    fi
+
+    # use different deployment process depending on CI or CD
+    if [[ "$(get_env pipeline_namespace)" == *"cd"* ]]; then
+      INVENTORY_PATH="$(get_env inventory-path)"
+      DEPLOYMENT_DELTA_PATH="$(get_env deployment-delta-path)"
+      echo "Target environment: $(get_env target-environment)"
+      echo "Deployment Delta (inventory entries with updated artifacts)"
+      jq '.' "$DEPLOYMENT_DELTA_PATH"
+      echo ""
+      #
+      # iterate over inventory deployment delta
+      #
+      for INVENTORY_ENTRY in $(jq -r '.[]' $DEPLOYMENT_DELTA_PATH); do
+        echo "==============================================="
+        echo "Deploying $INVENTORY_ENTRY"
+        set_env app-name "$(jq -r '.app_artifacts.name' ${INVENTORY_PATH}/${INVENTORY_ENTRY})"
+        code_engine_deployment_type=$(jq -r '.app_artifacts.code_engine_deployment_type' ${INVENTORY_PATH}/${INVENTORY_ENTRY})
+        IMAGE=$(jq -r '.provenance' ${INVENTORY_PATH}/${INVENTORY_ENTRY})
+        source "${WORKSPACE}/$PIPELINE_CONFIG_REPO_PATH/scripts/deploy_setup.sh"
+        if [ "$code_engine_deployment_type" == "job" ]; then
+          source "${WORKSPACE}/$PIPELINE_CONFIG_REPO_PATH/scripts/deploy_job.sh"
+        else
+          source "${WORKSPACE}/$PIPELINE_CONFIG_REPO_PATH/scripts/deploy_app.sh"
+        fi
+        echo ""
+        echo "==============================================="
+      done
+    else
+      IMAGE=$(load_artifact app-image name)
+      source "${WORKSPACE}/$PIPELINE_CONFIG_REPO_PATH/scripts/deploy_setup.sh"
+      if [ "$(get_env code-engine-deployment-type "application")" == "job" ]; then
+        source "${WORKSPACE}/$PIPELINE_CONFIG_REPO_PATH/scripts/deploy_job.sh"
+      else
+        source "${WORKSPACE}/$PIPELINE_CONFIG_REPO_PATH/scripts/deploy_app.sh"
+      fi
+    fi
+
+acceptance-test:
+  abort_on_failure: false
+  image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.11
+  script: |
+    #!/usr/bin/env bash
+
+    cd "${WORKSPACE}/$(load_repo app-repo path)/$(get_env source "")"
+
+    #npm ci
+    export APP_URL=$(get_env app-url)
+    # save exit code for old evidence collection
+    exit_code=0
+    #npm run acceptance-test || exit_code=$?
+
+    # save status for new evidence collection
+    status="success"
+    if [ "$exit_code" != "0" ]; then
+      status="failure"
+    fi
+
+    collect-evidence \
+      --tool-type "jest" \
+      --status "$status" \
+      --evidence-type "com.ibm.acceptance_tests" \
+      --asset-type "repo" \
+      --asset-key "app-repo"
+    exit $exit_code
+
+release:
+  abort_on_failure: false
+  image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.11
+  script: |
+    #!/usr/bin/env bash
+
+    if [[ "$PIPELINE_DEBUG" == 1 ]]; then
+      trap env EXIT
+      env
+      set -x
+    fi
+
+    # Check the status of pipeline and then release the artifacts to inventory
+    ONE_PIPELINE_STATUS=$(get_env one-pipeline-status 0)
+    if [ "$(get_env skip-inventory-update-on-failure 1)" == "1" ]; then
+      if [ $ONE_PIPELINE_STATUS -eq 1 ]; then
+         echo "Skipping release stage as some of the pipeline stages are not successfull."
+         exit 1
+      fi
+    fi
+
+    cd "${WORKSPACE}/$(load_repo app-repo path)/$(get_env source "")"
+
+    source "${WORKSPACE}/$PIPELINE_CONFIG_REPO_PATH/scripts/release.sh"

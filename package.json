@@ -1,0 +1,16 @@
+{
+  "name": "gen-ai-rag-watsonx-sample-application",
+  "version": "1.0.0",
+  "description": "sample application to use for generative ai rag pattern with watsonx",
+  "main": "main.js",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.17.1",
+    "express-session": "^1.17.0"
+  },
+  "scripts": {
+    "start": "./utils/start_application.sh"
+  },
+  "author": "IBM",
+  "license": "Apache"
+}

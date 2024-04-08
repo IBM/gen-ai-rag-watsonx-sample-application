@@ -1,0 +1,48 @@
+<html lang="en">
+<head>
+    <title>Bank</title>
+    <link rel='stylesheet' href='stylesheets/protected.css'/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link href="stylesheets/general.css" type="text/css" rel="stylesheet"/>
+</head>
+<body>
+<div id="maindiv" class="maindiv">
+    <div class="top-container">
+        <div class="top">
+            Bank
+	    <span class="login">
+            	<!--<a href="/protected/protected.html"> <button class="login-button">Login</button></a>
+		
+		<button class="login-button">Login</button>
+                <a href="/protected/protected.html"> <button class="login-button">Login</button></a>
+		-->
+	    </span>
+        </div>
+
+    </div>
+    <div class="middle-container">
+
+        <span> <img id="website" src="images/webpage-content-and-logo.png" align="left"></span>
+    </div>
+
+        <script>
+          window.watsonAssistantChatOptions = {
+            integrationID: "<wa_integration_id>", // The ID of this integration.
+            region: "<wa_region>", // The region your integration is hosted in.
+            serviceInstanceID: "<wa_service_instance_id>", // The ID of your service instance.
+            onLoad: function(instance) { instance.render(); }
+          };
+          setTimeout(function(){
+            const t=document.createElement('script');
+            t.src="https://web-chat.global.assistant.watson.appdomain.cloud/versions/" + (window.watsonAssistantChatOptions.clientVersion || 'latest') + "/WatsonAssistantChatEntry.js";
+            document.head.appendChild(t);
+          });
+        </script>
+
+        </div>
+    </div>
+</div>
+
+
+</body>
+</html>
