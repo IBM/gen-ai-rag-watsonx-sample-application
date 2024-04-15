@@ -48,11 +48,11 @@ else
 fi
 
 # Configure specific properties - app flavor, watsonx integration ID
-WA_SERVICE_INSTANCE_ID=$(get_env WA_SERVICE_INSTANCE_ID "")
-WA_REGION=$(get_env WA_REGION "")
+WA_SERVICE_INSTANCE_ID=$(get_env watsonx_assistant_id "")
+WA_REGION=$(get_env watsonx_assistant_region "us-south")
 
 # api call to get integration ID?
-WA_INTEGRATION_ID=$(get_env WA_INTEGRATION_ID "")
+WA_INTEGRATION_ID=$(get_env watsonx_assistant_integration_id "")
 APP_FLAVOR=$(get_env app-flavor "")
 
 ibmcloud ce configmap update --name app.properties --from-literal "WA_SERVICE_INSTANCE_ID=$WA_SERVICE_INSTANCE_ID" --from-literal "WA_REGION=$WA_REGION" --from-literal "WA_INTEGRATION_ID=$WA_INTEGRATION_ID" --from-literal "APP_FLAVOR=$APP_FLAVOR"
