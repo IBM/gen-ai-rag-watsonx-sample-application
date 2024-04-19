@@ -1,28 +1,14 @@
 <html lang="en">
 <head>
     <title>Bank</title>
-    <link rel='stylesheet' href='stylesheets/protected.css'/>
+    <link rel='stylesheet' href='stylesheets/general.css'/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <link href="stylesheets/general.css" type="text/css" rel="stylesheet"/>
 </head>
 <body>
 <div id="maindiv" class="maindiv">
-    <div class="top-container">
-        <div class="top">
-            Bank
-	    <span class="login">
-            	<!--<a href="/protected/protected.html"> <button class="login-button">Login</button></a>
-		
-		<button class="login-button">Login</button>
-                <a href="/protected/protected.html"> <button class="login-button">Login</button></a>
-		-->
-	    </span>
-        </div>
-
-    </div>
     <div class="middle-container">
-
-        <span> <img id="website" src="images/webpage-content-and-logo.png" align="left"></span>
+        <span> <img id="website" src="images/webpage-content-and-logo.png" align="left" width="100%" height="100%"></span>
     </div>
 
         <script>
@@ -46,3 +32,4 @@
 
 </body>
 </html>
+

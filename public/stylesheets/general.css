@@ -12,11 +12,11 @@ body {
     padding: 0;
 }
 .top-container {
-    background: black;
+    background: #6941c6;
     box-shadow: 0 2px 2px 0 rgba(140, 155, 165, 0.25);
     text-align: center;
-    color: #42535C;
-    margin-bottom: 28px;
+    color: #6941c6;
+    margin-bottom: 0px;
 }
 
 
@@ -29,8 +29,10 @@ body {
 .middle-container {
     background: white;
     text-align: left;
-    margin-left: 2%;
-    margin-bottom: 20px;
+    margin-left: 0%;
+    margin-bottom: 0px;
+    margin-top: 0px;
+    margin: 0;
 }
 
 .bottom-container {
@@ -135,13 +137,13 @@ body {
 }
 
 .top {
-    background: black;
-    color: #BFBFBF;
+    background: #6941c6;
+    color: white;
     #font-weight: lighter;
     #box-shadow: 0 4px 2px 0 rgba(140, 155, 165, 0.25);
     padding-bottom: 10px;
 
-    font-family: IBMPlexSans;
+    font-family: IBM Plex Sans;
     font-size: 30px;
     text-align: left;
     #color: white;
@@ -247,3 +249,4 @@ body {
 #menu li a {
     color: black;
 }
+
