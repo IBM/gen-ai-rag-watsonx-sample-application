@@ -1,53 +1,60 @@
 ## Configuration steps for watsonx Assistant artifacts
 
-The *Gen AI Sample Application* requires integration of watsonx Assistant with Watson Discovery (for knowledgebase and natural language search) and watsonx.ai (for generative ai tasks).
+The *Gen AI Sample Application* requires configurations on watsonx Assistant to enable integration with Watson Discovery (for content search) and watsonx.ai (for generative ai tasks).
 
-Preprequisite: The sample application deployment must be completed using the *Retrieval Augmented Generation Pattern Deployabe Architecture Stack* in the IBM Cloud Account of your deployment. You must be an Administrator in this IBM Cloud Account to do the configurations. Before starting the configuration steps, confirm that the sample application is successfully deployed and running on Code Engine.
+Follow the steps below to configure watsonx Assistant.
 
-The URL for the sample application (*e.g., https://rag-sample-app.absdefgh.us-south.codeengine.appdomain.cloud/*) is available from the Code Engine serivce or from the Outputs tab of the "RAG-6 - Sample RAG app configuration" Deployabe Architecture.
+__Prerequisites:__
+- The sample application webpage is up and running and shows a banner to complete the watsonx Assistant configurations. (Deployment was completed earlier using the *Retrieval Augmented Generation Pattern Deployabe Architecture Stack* in the IBM Cloud Account of your deployment.)
+- You have Administrator privileges in the IBM Cloud Account to do the configurations. 
 
-Launch the sample application to confirm it is running and the watsonx Assistant chat widget is avaialble. It can take a couple of minutes for the applicaiton webpage to launch if accessed for the first time or from a dormant state. Once confirmed, proceed with the watsonx Assistant configuration steps. Otherwise check for any issues in the deployment.
+(The URL for the sample application (*e.g., https://rag-sample-app.absdefgh.us-south.codeengine.appdomain.cloud/*) is available from the Code Engine service that was deployed from the RAG Pattern DA Stack.)
 
-Configuraiton steps: Follow the steps below to configure watsonx Assistant widget with Watson Discovery and watsonx.ai.
+__Configuraiton steps summary:__
 
-### Step 1. Get the values for the following configuration attributes and keep them handy
+1. Open the RAG Pattern DA Stack Project (to get configuration parameter values)
+2. Open Secrets Manager (to get configuration api keys values)
+3. Open watsonx Assistant (to start configuring watsonx Assistant)
+4. Create and configure custom extension for Watson Discovery (configuration in watsonx Assistant)
+5. Create and configure custom extension for watsonx.ai (configuration in watsonx Assistant)
+6. Create the RAG pattern Action skill (configuration in watsonx Assistant)
+7. Confirm uploads and imports are successful
+8. Configure the Action session variable values  (configuration in watsonx Assistant)
+9. Confirm sample application and watsonx Assistant are working correctly
 
-- __SaaS User API Key__ (*e.g., kjRoD...5094ea3afS...363f2a...kH*)
-- __Watson Discovery URL__ (*e.g., api.us-south.discovery.watson.cloud.ibm.com/instances/12345-6789*)
-- __Watson Discovery Project ID__ (*e.g., 3x88e6fb-8888-4ea3-a88b-4x363f2xx2a5*)
-- __watson.ai Project ID__ (*e.g., 0d01x1c8-8888-x88x-3cc2-2f888f2ad8x1*)
-- __Sample application URL__ (*e.g., https://rag-sample-app.absdefgh.us-south.codeengine.appdomain.cloud/*)
+__Configuraiton steps:__
 
-To get the SaaS User API Key, login to IBM Cloud Account of your deployment, open Resource list and launch the Secrets Manager service instance deployed by the Deployable Archietctures. Naviage to Secrets. To retrieve the key, click on the three dots and "View secret" for *watsonx_admin_api_key* if configured, or otherwise the *ibmcloud_api_key* 
+### Step 1.	Open the RAG Pattern DA Stack Project
 
-To get the other values, open the "RAG-6 - Sample RAG app configuration" Deployabe Architecture. The Outputs tab contains the values for these attributes
+Login to IBM Cloud Account that was used for deployment and navigate to Projects.
 
+<img width="150" alt="image" src="artifact-readme-images/ibmcloud-project-nav.png">
 
-### Step 2. Download the following artifact json files from the GitHub repository
+Open the Project that was used for deploying the *Retrieval Augmented Generation Pattern Deployabe Architecture Stack (RAG Pattern DA Stack)*
 
-GitHub repository: https://github.com/IBM/gen-ai-rag-watsonx-sample-application/blob/main/artifacts/watsonx.Assistant
+In the RAG Pattern DA Stack, open the "RAG-6 - Sample RAG app configuration" Deployabe Architecture - Outputs tab.
 
-Click on the file and download raw file.
+<img width="350" alt="image" src="artifact-readme-images/ragstack-rag6.png">
 
-- __watsonx Assistant Custom Extension for Watson Discovery__ 
+Keep this window open. In later steps we will need the values for watson_discovery_project_id, watson_discovery_api_url and watsonx_project_id in the configuration.
 
-&nbsp; &nbsp; &nbsp; &nbsp; File: *watson-discovery-custom-ext-openapi.json*
+<img width="350" alt="image" src="artifact-readme-images/ragstack-rag6-outputs.png">
 
-- __watsonx Assistant Custom Extension for watsonx.ai__
+### Step 2.	Open Secrets Manager
 
-&nbsp; &nbsp;&nbsp; &nbsp; File: *watsonxai-custom-ext-\<location\>-openapi.json*
+In the IBM Cloud Account, open Resource list and select the Secrets Manager instance that was deployed from the RAG Pattern Stack.
 
-&nbsp; &nbsp;&nbsp; &nbsp; Get one file that matches the location of your deployments - us-south, eu-de, jp-tok.
+Naviage to Secrets. You should see the secrets "ibmcloud-api-key" and "watsonx-admin-api-key" (if it was used in the deployment).
 
-- __watsonx Assistant Actions skill__
+Keep this window open. In later steps we will retrieve the api key for configuration.
 
-&nbsp; &nbsp; &nbsp; &nbsp;File: *gen-ai-rag-sample-assistant-action.json*
+<img width="425" alt="image" src="artifact-readme-images/secrets-mgr-list.png">
 
 
 ### Step 3.	Open watsonx Assistant
-Login to IBM Cloud Account, open Resource list and select the watsonx Assistant instance.
+In the IBM Cloud Account, open Resource list and select the watsonx Assistant instance that was deployed from the RAG Pattern Stack.
 
-Launch Account watsonx Assistant UI and select __gen-ai-rag-sample-v1__ Assistant.
+Launch watsonx Assistant UI and select __gen-ai-rag-sample-v1__ Assistant.
 
 <img width="285" alt="image" src="artifact-readme-images/wxa-project.png">
 
@@ -66,9 +73,14 @@ In the Basic Information, enter the following:
 
 Extension name: __watson-discovery-custom-ext-v1__
 
-Click Next. On Import OpenAPI, upload json file: __watson-discovery-custom-ext-openapi.json__
+Click Next. 
 
-Click Next and Finish to save the custom extension.
+On Import OpenAPI, upload json file: __watson-discovery-custom-ext-openapi.json__
+
+Get/download the watson-discovery-custom-ext-openapi.json file from > [here](https://github.com/IBM/gen-ai-rag-watsonx-sample-application/blob/main/artifacts/watsonx.Assistant/watson-discovery-custom-ext-openapi.json).
+(Hint: Use <img width="100" alt="image" src="artifact-readme-images/github-file-dwnld.png"> to download.)
+
+Import/Upload the file. Click Next and Finish to save the custom extension.
 
 Add/Open the __watson-discovery-custom-ext-v1__ custom extension tile.
  
@@ -84,9 +96,11 @@ Authentication Type: __Basic Auth__
 
 Username: __apikey__
 
-API Key: **_enter the SaaS User API Key captured earlier_**
+API Key: **_Retreive the "ibmcloud-api-key" or "watsonx-admin-api-key" from Secrets Mangager and enter here_**
 
-Servers - Server variable (Watson Discovery URL): **_enter the Watson Discovery instance URL captured earlier (without the https://)_**
+(Hint: In Secrets Manager, use <img width="80" alt="image" src="artifact-readme-images/secrets-mgr-viewsecret.png"> to retreive the api key value.)
+
+Servers - Server variable (Watson Discovery URL): **_Get the value for "watson_discovery_api_url" from the RAG-6 Outputs and enter here._** (exclude 'https://' in the entry.)
 
  <img width="350" alt="image" src="artifact-readme-images/wxa-cext-dsc-auth.png">
 
@@ -103,9 +117,14 @@ In the Basic Information, enter the following:
 
 Extension name: __watsonx-ai-custom-ext-v1__
 
-Click Next. On Import OpenAPI, upload json file: __watsonxai-custom-ext-\<location\>-openapi.json__
+Click Next. 
 
-Click Next and Finish to save the custom extension.
+On Import OpenAPI, upload json file: __watsonxai-custom-ext-\<location\>-openapi.json__
+
+Get/download the file for your locaiton. [File URLs: [us-south](https://github.com/IBM/gen-ai-rag-watsonx-sample-application/blob/main/artifacts/watsonx.Assistant/watsonxai-custom-ext-us-south-openapi.json), [eu-de](https://github.com/IBM/gen-ai-rag-watsonx-sample-application/blob/main/artifacts/watsonx.Assistant/watsonxai-custom-ext-eu-de-openapi.json), [jp-tok](https://github.com/IBM/gen-ai-rag-watsonx-sample-application/blob/main/artifacts/watsonx.Assistant/watsonxai-custom-ext-jp-tok-openapi.json)]
+
+
+Import/Upload the file. Click Next and Finish to save the custom extension.
 
 Add/Open the __watsonx-ai-custom-ext-v1__ custom extension tile
 
@@ -119,12 +138,13 @@ Select Authentication tab.
 
 Authentication Type: __OAuth 2.0__
 
-Custom Secrets - Apikey: **_enter the SaaS User API Key captured earlier_**
+Custom Secrets - Apikey:**_Retreive the "ibmcloud-api-key" or "watsonx-admin-api-key" from Secrets Mangager and enter here_**
 
 
 <img width="350" alt="image" src="artifact-readme-images/wxa-cext-wxai-auth.png">
 
 Next, Save/Finish and exit the configuration.
+
 
 ### Step 6.	Create the RAG pattern Action skill
 This is done by importing the OpenAPI JSON file *gen-ai-rag-sample-assistant-action.json*
@@ -137,14 +157,15 @@ Go to the tab > Upload/Download
 
 <img width="500" alt="image" src="artifact-readme-images/wxa-action-set.png">
 
-Upload Action skill json file: __watsonx-assistant-gen-ai-sample-v1.json__
+Upload Action skill json file: __gen-ai-rag-sample-assistant-action.json__
+
+Get/download the gen-ai-rag-sample-assistant-action.json file from > [here](https://github.com/IBM/gen-ai-rag-watsonx-sample-application/blob/main/artifacts/watsonx.Assistant/gen-ai-rag-sample-assistant-action.json)
 
 Click on Upload and Replace. 
 
 <img width="235" alt="image" src="artifact-readme-images/wxa-action-set-y.png">
 
 Close.
-
 
 ### Step 7.	Confirm uploads and imports are successful
 
@@ -162,17 +183,17 @@ Enter search text "project" to find the project id session variables in the list
 
 Enter the values for __Watson Discovery Project ID__  and __watsonx.ai Project ID__ session variables
 
-discovery_project_id: **_enter the Watson Discovery Project ID captured earlier_**
+discovery_project_id: **_Get the value for "watson_discovery_project_id" from the RAG-6 Outputs and enter here._**
 
-wxai_project_id: **_enter the watsonx.ai Project ID captured earlier_**
+watsonx_project_id: **_Get the value for "watsonx_project_id" from the RAG-6 Outputs and enter here._**
 
 <img width="600" alt="image" src="artifact-readme-images/wxa-action-vars-set.png">
 
 ### Step 9.	Confirm sample application and watsonx Assistant are working correctly
 
-Launch the Gen AI Sample RAG pattern application using __Sample application URL__ captured earlier. It can take a couple of minutes for the applicaiton webpage to launch if accessed for the first time or from a dormant state.
+Launch the Gen AI Sample RAG pattern application. It can take a couple of minutes for the applicaiton webpage to launch if accessed for the first time or from a dormant state.
 
-Open the virtual assistant.
+Open the virtual assistant. You should see a welcome message. "Welcome, how can I assist you?"
 
 Ask the question:
 
@@ -183,8 +204,5 @@ Ask the question:
 Response to the question confirms successful integration of watsonx Assistant with Watson Discovery and watsonx.ai.
 
 **This completes the watsonx Assistant artifact configuration.**
-
-
-
 
 
