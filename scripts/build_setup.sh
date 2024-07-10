@@ -110,7 +110,5 @@ else
       echo "Registry namespace ${ICR_REGISTRY_NAMESPACE} created."
   else
       echo "Registry namespace ${ICR_REGISTRY_NAMESPACE} found."
-
-      
   fi
 fi
