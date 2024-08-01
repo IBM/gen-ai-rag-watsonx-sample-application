@@ -100,7 +100,7 @@ else
   IBM_LOGIN_REGISTRY_REGION=$(< /config/registry-region awk -F: '{print $3}')
   ibmcloud config --check-version false
   ibmcloud login --apikey @/config/api-key -r "$IBM_LOGIN_REGISTRY_REGION" -a "$IBMCLOUD_API"
-  ibmcloud target -g "$(get_env dev-resource-group "Default")"
+  ibmcloud target -g "$(get_env dev-resource-group "${RESOURCE_GROUP_NAME:=Default}")"
 
   NS=$( ibmcloud cr namespaces | sed 's/ *$//' | grep -x "${ICR_REGISTRY_NAMESPACE}" ||: )
 
