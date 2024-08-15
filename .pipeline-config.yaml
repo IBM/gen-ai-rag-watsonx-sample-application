@@ -2,7 +2,7 @@
 version: '1'
 
 setup:
-  image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.11
+  image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.46
   script: |
     #!/usr/bin/env bash
     if [[ "$PIPELINE_DEBUG" == 1 ]]; then
@@ -16,7 +16,7 @@ setup:
 
 test:
   abort_on_failure: false
-  image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.11
+  image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.46
   script: |
     #!/usr/bin/env bash
 
@@ -43,7 +43,7 @@ test:
 
 containerize:
   dind: true
-  image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.11
+  image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.46
   script: |
     #!/usr/bin/env bash
 
@@ -64,7 +64,7 @@ containerize:
     fi
 
 deploy:
-  image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.11
+  image: icr.io/continuous-delivery/pipeline/pipeline-base-image:2.59
   script: |
     #!/usr/bin/env bash
 
@@ -137,6 +137,31 @@ acceptance-test:
       --asset-type "repo" \
       --asset-key "app-repo"
     exit $exit_code
+
+dynamic-scan:
+  dind: true
+  abort_on_failure: false
+  image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.46
+  script: |
+    #!/usr/bin/env bash
+    if [[ "$PIPELINE_DEBUG" == 1 ]]; then
+      trap env EXIT
+      env
+      set -x
+    fi
+    if [ -z "$(get_env opt-in-dynamic-scan "")" ]; then
+      echo "If you want to enable this stage, add 'opt-in-dynamic-scan' parameter to your pipeline with any value. Also, please add 'opt-in-dynamic-api-scan' to your pipeline with any value to have api scans running, and 'opt-in-dynamic-ui-scan' with any value to have ui scans running" >&2
+    else
+      if [[ "$(get_env pipeline_namespace)" == *"cc"* ]]; then
+        app_url=$(get_env app-url "")
+        if [[ -z "${app_url}" ]]; then
+          echo "Please provide the app-url as the running application url. Recommended to use stage/test environment to run the Dynamic scan." >&2
+          exit 1
+        fi
+        source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/zap/zap-cc-config
+      fi
+      source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/zap/trigger_zap_scans
+    fi
 
 release:
   abort_on_failure: false
