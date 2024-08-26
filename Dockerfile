@@ -27,6 +27,12 @@ COPY . .
 #Set shell script permissions
 RUN chmod 755 $APPLICATION_HOME_DOCKER/utils/*.sh
 
+# set file permissions
+RUN chown -R 1001:0 ${APPLICATION_HOME_DOCKER} && chmod -R u+rwx ${APPLICATION_HOME_DOCKER} && \
+    chmod -R g=u ${APPLICATION_HOME_DOCKER}
+
+USER 1001
+
 #EXPOSE 8080
 EXPOSE $APPLICATION_PORT
 
