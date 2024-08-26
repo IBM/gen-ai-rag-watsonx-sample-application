@@ -1,0 +1,95 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: gen-ai-rag-sample-app
+  labels:
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: gen-ai-rag-sample-app-secret
+  namespace: gen-ai-rag-sample-app
+  labels:
+    app: gen-ai-rag-sample-app
+data:
+  .dockerconfigjson: secret
+type: kubernetes.io/dockerconfigjson
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: gen-ai-rag-sample-app-sa
+  namespace: gen-ai-rag-sample-app
+  labels:
+    app: gen-ai-rag-sample-app
+imagePullSecrets:
+  - name: gen-ai-rag-sample-app-secret
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gen-ai-rag-sample-app
+  labels:
+    application: gen-ai-rag-sample-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gen-ai-rag-sample-app
+  template:
+    metadata:
+      labels:
+        app: gen-ai-rag-sample-app
+    spec:
+      serviceAccountName: gen-ai-rag-sample-app-sa
+      containers:
+        - name: gen-ai-rag-sample-app
+          image: gen-ai-rag-sample-app
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "250m"
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+          imagePullPolicy: Always   
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: gen-ai-rag-sample-app-configmap
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: gen-ai-rag-sample-app
+  namespace: gen-ai-rag-sample-app
+  labels:
+    app: gen-ai-rag-sample-app
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+  selector:
+    app: gen-ai-rag-sample-app
+---
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: gen-ai-rag-sample-app
+  namespace: gen-ai-rag-sample-app
+  labels:
+    app: gen-ai-rag-sample-app
+spec:
+  to:
+    kind: Service
+    name: gen-ai-rag-sample-app
+  port:
+    targetPort: http
+  tls:
+    termination: edge
