@@ -54,11 +54,11 @@ containerize:
     fi
 
     source "${WORKSPACE}/$PIPELINE_CONFIG_REPO_PATH/scripts/build_setup.sh"
-    DEPLOYMENT_TARGET_TYPE="$(get_env deployment_target_type "")"
-    if [[ "$DEPLOYMENT_TARGET_TYPE" == "ROKS" ]]; then
-      source "${WORKSPACE}/$PIPELINE_CONFIG_REPO_PATH/scripts/build_using_docker.sh"
-    else
+    CLUSTER_NAME="$(get_env cluster-name "")"
+    if [ -z "${CLUSTER_NAME}" ]; then
       source "${WORKSPACE}/$PIPELINE_CONFIG_REPO_PATH/scripts/build_using_code_engine.sh"
+    else
+      source "${WORKSPACE}/$PIPELINE_CONFIG_REPO_PATH/scripts/build_using_docker.sh"
     fi
 
 deploy:
@@ -72,7 +72,7 @@ deploy:
       set -x
     fi
 
-    DEPLOYMENT_TARGET_TYPE="$(get_env deployment_target_type "")"
+    CLUSTER_NAME="$(get_env cluster-name "")"
 
     # use different deployment process depending on CI or CD
     if [[ "$(get_env pipeline_namespace)" == *"cd"* ]]; then
@@ -91,27 +91,27 @@ deploy:
         set_env app-name "$(jq -r '.app_artifacts.name' ${INVENTORY_PATH}/${INVENTORY_ENTRY})"
         IMAGE=$(jq -r '.provenance' ${INVENTORY_PATH}/${INVENTORY_ENTRY})
 
-        if [[ "$DEPLOYMENT_TARGET_TYPE" == "ROKS" ]]; then
-          source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/roks/deploy_setup.sh
-          source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/roks/deploy.sh
-        else
+        if [ -z "${CLUSTER_NAME}" ]; then
           code_engine_deployment_type=$(jq -r '.app_artifacts.code_engine_deployment_type' ${INVENTORY_PATH}/${INVENTORY_ENTRY})
           source "${WORKSPACE}/$PIPELINE_CONFIG_REPO_PATH/scripts/code_engine/deploy_setup.sh"
           source "${WORKSPACE}/$PIPELINE_CONFIG_REPO_PATH/scripts/code_engine/deploy.sh"
+        else
+          source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/roks/deploy_setup.sh
+          source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/roks/deploy.sh
         fi
-        echo ""
-        echo "==============================================="
       done
+      echo ""
+      echo "==============================================="
     else
       IMAGE=$(load_artifact app-image name)
-      if [[ "$DEPLOYMENT_TARGET_TYPE" == "ROKS" ]]; then
-          source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/roks/deploy_setup.sh
-          source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/roks/deploy.sh
-        else
-          code_engine_deployment_type=$(jq -r '.app_artifacts.code_engine_deployment_type' ${INVENTORY_PATH}/${INVENTORY_ENTRY})
-          source "${WORKSPACE}/$PIPELINE_CONFIG_REPO_PATH/scripts/code_engine/deploy_setup.sh"
-          source "${WORKSPACE}/$PIPELINE_CONFIG_REPO_PATH/scripts/code_engine/deploy.sh"
-        fi
+      if [ -z "${CLUSTER_NAME}" ]; then
+        code_engine_deployment_type=$(jq -r '.app_artifacts.code_engine_deployment_type' ${INVENTORY_PATH}/${INVENTORY_ENTRY})
+        source "${WORKSPACE}/$PIPELINE_CONFIG_REPO_PATH/scripts/code_engine/deploy_setup.sh"
+        source "${WORKSPACE}/$PIPELINE_CONFIG_REPO_PATH/scripts/code_engine/deploy.sh"
+      else
+        source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/roks/deploy_setup.sh
+        source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/roks/deploy.sh
+      fi
     fi
 
 acceptance-test:
