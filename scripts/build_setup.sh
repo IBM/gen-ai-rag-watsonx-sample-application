@@ -71,8 +71,8 @@ if [[ -s "/config/repository" ]]; then
 else
   REPOSITORY="$(load_repo app-repo url)"
 fi
-# image-name default to repo name and source
-IMAGE_NAME="$(get_env image-name "$(basename "$REPOSITORY" .git)-$(get_env source)")"
+# image-name default to app-name in case it's not available
+IMAGE_NAME="$(get_env image-name "$(get_env app-name)")"
 # shellcheck disable=SC2002
 IMAGE_TAG="$(date +%Y%m%d%H%M%S)-$(cat /config/git-branch  | tr -c '[:alnum:]_.-' '_')-$(cat /config/git-commit)"
 
