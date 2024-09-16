@@ -91,7 +91,29 @@ else
   if which oc > /dev/null && jq -e '.type=="openshift"' "${IBMCLOUD_IKS_CLUSTER_NAME}.json" > /dev/null; then
     echo "${IBMCLOUD_IKS_CLUSTER_NAME} is an openshift cluster. Doing the appropriate oc login to target it"
     oc login -u apikey -p "${IBMCLOUD_API_KEY}"
-     CLUSTER_TYPE="OPENSHIFT"
+
+    # check for RBAC sync - if it is not completed, try again 5 seconds later - total of 20 attempts
+    PROJECT_SUCCESS_MESSAGE = "You can list all projects with 'oc projects'"
+    PROJECT_SUCCESS = false
+    for i in {1..20}; do
+      PROJECT_OUTPUT=$(oc get projects)
+      if [[ ! $PROJECT_OUTPUT =~ $PROJECT_SUCCESS_MESSAGE ]]; then
+        echo "RBAC sync not complete, trying again in 5 seconds"
+        sleep 5
+      else
+        PROJECT_SUCCESS = true
+        break
+      fi
+    done 
+
+    if $PROJECT_SUCCESS; then
+      echo "RBAC sync and oc login successful"
+    else
+      echo "RBAC sync not completed in time, please re-run this pipeline in a few minutes"
+      exit 1
+    fi
+
+    CLUSTER_TYPE="OPENSHIFT"
   fi
 fi
 
