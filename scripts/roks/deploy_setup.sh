@@ -90,23 +90,23 @@ else
   # If the target cluster is openshift then make the appropriate additional login with oc tool
   if which oc > /dev/null && jq -e '.type=="openshift"' "${IBMCLOUD_IKS_CLUSTER_NAME}.json" > /dev/null; then
     echo "${IBMCLOUD_IKS_CLUSTER_NAME} is an openshift cluster. Doing the appropriate oc login to target it"
-    oc login -u apikey -p "${IBMCLOUD_API_KEY}"
 
     # check for RBAC sync - if it is not completed, try again 5 seconds later - total of 20 attempts
-    PROJECT_SUCCESS_MESSAGE = "You can list all projects with 'oc projects'"
-    PROJECT_SUCCESS = false
+    LOGIN_SUCCESS_MESSAGE="You can list all projects with 'oc projects'"
+    LOGIN_SUCCESS=false
     for i in {1..20}; do
-      PROJECT_OUTPUT=$(oc get projects)
-      if [[ ! $PROJECT_OUTPUT =~ $PROJECT_SUCCESS_MESSAGE ]]; then
+      LOGIN_OUTPUT=$(oc login -u apikey -p "${IBMCLOUD_API_KEY}")
+      echo $LOGIN_OUTPUT
+      if [[ ! $LOGIN_OUTPUT =~ $LOGIN_SUCCESS_MESSAGE ]]; then
         echo "RBAC sync not complete, trying again in 5 seconds"
         sleep 5
       else
-        PROJECT_SUCCESS = true
+        LOGIN_SUCCESS=true
         break
       fi
     done 
 
-    if $PROJECT_SUCCESS; then
+    if $LOGIN_SUCCESS; then
       echo "RBAC sync and oc login successful"
     else
       echo "RBAC sync not completed in time, please re-run this pipeline in a few minutes"
