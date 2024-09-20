@@ -86,25 +86,18 @@ else
     exit 1
   fi
 
-
-  # If the target cluster is openshift then make the appropriate additional login with oc tool
   if which oc > /dev/null && jq -e '.type=="openshift"' "${IBMCLOUD_IKS_CLUSTER_NAME}.json" > /dev/null; then
-    echo "${IBMCLOUD_IKS_CLUSTER_NAME} is an openshift cluster. Doing the appropriate oc login to target it"
-
     # check for RBAC sync - if it is not completed, try again 5 seconds later - total of 20 attempts
-    LOGIN_SUCCESS_MESSAGE="You can list all projects with 'oc projects'"
     LOGIN_SUCCESS=false
     for i in {1..20}; do
-      LOGIN_OUTPUT=$(oc login -u apikey -p "${IBMCLOUD_API_KEY}")
-      echo $LOGIN_OUTPUT
-      if [[ ! $LOGIN_OUTPUT =~ $LOGIN_SUCCESS_MESSAGE ]]; then
+      if ! oc get nodes; then
         echo "RBAC sync not complete, trying again in 5 seconds"
         sleep 5
       else
         LOGIN_SUCCESS=true
         break
       fi
-    done 
+    done
 
     if $LOGIN_SUCCESS; then
       echo "RBAC sync and oc login successful"
