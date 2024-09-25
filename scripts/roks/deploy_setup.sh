@@ -73,13 +73,13 @@ else
     ibmcloud login -r "${IBMCLOUD_IKS_REGION}" -a "$IBMCLOUD_API"
 
   retry 5 2 \
-    ibmcloud ks cluster config --cluster "${IBMCLOUD_IKS_CLUSTER_NAME}"
+    ibmcloud ks cluster config --cluster "${IBMCLOUD_IKS_CLUSTER_NAME}" --admin
 
 
   ibmcloud ks cluster get --cluster "${IBMCLOUD_IKS_CLUSTER_NAME}" --json > "${IBMCLOUD_IKS_CLUSTER_NAME}.json"
   IBMCLOUD_IKS_CLUSTER_ID=$(jq -r '.id' "${IBMCLOUD_IKS_CLUSTER_NAME}.json")
 
-  if [ "$(kubectl config current-context)" != "${IBMCLOUD_IKS_CLUSTER_NAME}"/"${IBMCLOUD_IKS_CLUSTER_ID}" ]; then
+  if [[ ! "$(kubectl config current-context)" == "${IBMCLOUD_IKS_CLUSTER_NAME}"/"${IBMCLOUD_IKS_CLUSTER_ID}"* ]]; then
     echo "ERROR: Unable to connect to the Kubernetes cluster."
     echo "Consider checking that the cluster is available with the following command: \"ibmcloud ks cluster get --cluster ${IBMCLOUD_IKS_CLUSTER_NAME}\""
     echo "If the cluster is available check that that kubectl is properly configured by getting the cluster state with this command: \"kubectl cluster-info\""
