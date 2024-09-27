@@ -157,7 +157,24 @@ dynamic-scan:
       echo "If you want to enable this stage, add 'opt-in-dynamic-scan' parameter to your pipeline with any value. Also, please add 'opt-in-dynamic-api-scan' to your pipeline with any value to have api scans running, and 'opt-in-dynamic-ui-scan' with any value to have ui scans running" >&2
     else
       if [[ "$(get_env pipeline_namespace)" == *"cc"* ]]; then
-        app_url=$(get_env app-url "")
+        source "${ONE_PIPELINE_PATH}"/tools/get_repo_params
+
+        INVENTORY_PATH="$(get_env inventory-path)"
+        INVENTORY_TOKEN_PATH="./inventory-token"
+        read -r INVENTORY_REPO_NAME INVENTORY_REPO_OWNER INVENTORY_SCM_TYPE INVENTORY_API_URL < <(get_repo_params "$(get_env INVENTORY_URL)" "$INVENTORY_TOKEN_PATH")
+
+        APP_ARTIFACTS=$(cocoa inventory get \
+          --entry="$(get_env app-name '')" \
+          --org="${INVENTORY_REPO_OWNER}" \
+          --repo="${INVENTORY_REPO_NAME}" \
+          --environment="$(get_env target-environment 'prod')" \
+          --git-provider="${INVENTORY_SCM_TYPE}" \
+          --git-token-path="${INVENTORY_TOKEN_PATH}" \
+          --git-api-url="${INVENTORY_API_URL}" \
+          --property="app_artifacts")
+
+        app_url=$(jq -r '.prod_app_url' <<< $APP_ARTIFACTS)
+
         if [[ -z "${app_url}" ]]; then
           echo "Please provide the app-url as the running application url. Recommended to use stage/test environment to run the Dynamic scan." >&2
           exit 1

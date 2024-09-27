@@ -13,6 +13,7 @@
 
 # shellcheck disable=SC1090,SC1091
 source "${WORKSPACE}/$PIPELINE_CONFIG_REPO_PATH/scripts/code-engine-utilities.sh"
+source "${ONE_PIPELINE_PATH}"/tools/get_repo_params
 
 echo "Deploying your code as Code Engine application...."
 setup-cd-auto-managed-env-configmap "$(get_env app-name)"
@@ -93,3 +94,49 @@ echo "Application is available"
 echo -e "View the application at: $APPLICATION_URL"
 # Record task results
 set_env app-url "$APPLICATION_URL"
+
+# if in CD pipeline, add the app-url to the inventory entry.
+if [[ "$(get_env pipeline_namespace)" == *"cd"* ]]; then
+    INVENTORY_PATH="$(get_env inventory-path)"
+    DEPLOYMENT_DELTA_PATH="$(get_env deployment-delta-path)"
+    jq '.' "$DEPLOYMENT_DELTA_PATH"
+    for INVENTORY_ENTRY in $(jq -r '.[]' $DEPLOYMENT_DELTA_PATH); do
+        PROVENANCE=$(jq -r '.provenance' ${INVENTORY_PATH}/${INVENTORY_ENTRY})
+        APP_NAME=$(jq -r '.name' ${INVENTORY_PATH}/${INVENTORY_ENTRY})
+
+        APP_ARTIFACTS=$(jq --null-input -c \
+            --arg name "${APP_NAME}" \
+            --arg tags "$(jq -r '.app_artifacts.tags' ${INVENTORY_PATH}/${INVENTORY_ENTRY})" \
+            --arg ce_type "$(jq -r '.app_artifacts.code_engine_deployment_type' ${INVENTORY_PATH}/${INVENTORY_ENTRY})" \
+            --arg dev_app_url "$(jq -r '.app_artifacts.dev_app_url' ${INVENTORY_PATH}/${INVENTORY_ENTRY})" \
+            --arg prod_app_url "${APPLICATION_URL}" \
+            '.name=$name | .tags=$tags | .code_engine_deployment_type=$ce_type | .dev_app_url=$dev_app_url | .prod_app_url=$prod_app_url ')
+
+        INVENTORY_TOKEN_PATH="./inventory-token"
+        read -r INVENTORY_REPO_NAME INVENTORY_REPO_OWNER INVENTORY_SCM_TYPE INVENTORY_API_URL < <(get_repo_params "$(get_env INVENTORY_URL)" "$INVENTORY_TOKEN_PATH")
+
+        params=(
+            --repository-url="$(jq -r '.repository_url' ${INVENTORY_PATH}/${INVENTORY_ENTRY})"
+            --commit-sha="$(jq -r '.commit_sha' ${INVENTORY_PATH}/${INVENTORY_ENTRY})"
+            --version="$(jq -r '.version' ${INVENTORY_PATH}/${INVENTORY_ENTRY})"
+            --build-number="$(jq -r '.build_number' ${INVENTORY_PATH}/${INVENTORY_ENTRY})"
+            --pipeline-run-id="$(jq -r '.pipeline_run_id' ${INVENTORY_PATH}/${INVENTORY_ENTRY})"
+            --org="$INVENTORY_REPO_OWNER"
+            --repo="$INVENTORY_REPO_NAME"
+            --git-provider="$INVENTORY_SCM_TYPE"
+            --git-token-path="$INVENTORY_TOKEN_PATH"
+            --git-api-url="$INVENTORY_API_URL"
+        )
+
+        cocoa inventory add \
+            --artifact="${PROVENANCE}" \
+            --name="${APP_NAME}" \
+            --app-artifacts="${APP_ARTIFACTS}" \
+            --signature="$(jq -r '.signature' ${INVENTORY_PATH}/${INVENTORY_ENTRY})" \
+            --provenance="${PROVENANCE}" \
+            --sha256="$(jq -r '.sha256' ${INVENTORY_PATH}/${INVENTORY_ENTRY})" \
+            --type="$(jq -r '.type' ${INVENTORY_PATH}/${INVENTORY_ENTRY})" \
+            --environment="$(get_env target-environment)" \
+            "${params[@]}"
+    done
+fi
