@@ -93,3 +93,21 @@ spec:
     targetPort: http
   tls:
     termination: edge
+---
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: gen-ai-rag-sample-app-tls
+  namespace: gen-ai-rag-sample-app
+  labels:
+    app: gen-ai-rag-sample-app
+    ingress: ingress-public
+spec:
+  host: gen-ai-rag-sample-app-tls-dev.subdomain
+  to:
+    kind: Service
+    name: gen-ai-rag-sample-app
+  port:
+    targetPort: http
+  tls:
+    termination: edge
