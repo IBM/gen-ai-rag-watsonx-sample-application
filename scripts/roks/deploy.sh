@@ -62,6 +62,7 @@ echo "Updating public route in the deployment file ${DEPLOYMENT_FILE}"
 PUBLIC_ROUTE_DOC_INDEX=$(yq read --doc "*" --tojson "$DEPLOYMENT_FILE" | jq -r 'to_entries | .[] | select(.value.spec.host | tostring | ascii_downcase=="gen-ai-rag-sample-app-tls-dev.subdomain") | .key')
 PUBLIC_INGRESS_SUBDOMAIN=$(get_env cluster_public_ingress_subdomain "")
 # There may be some conditions when the pipeline env var is not set for ingress subdomain
+# This may happen in the first CI run
 # Try to get the domain from the ingress controller, assuming it's named <prefix>-ingress-public
 if [[ -z "$PUBLIC_INGRESS_SUBDOMAIN" ]]; then
   PUBLIC_INGRESS_SUBDOMAIN=$(kubectl get ingresscontrollers -n openshift-ingress-operator -o=custom-columns='DOMAIN:.spec.domain,NAME:.metadata.name' --no-headers | grep ingress-public | cut -d ' ' -f1)
