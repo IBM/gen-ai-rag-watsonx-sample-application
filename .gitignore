@@ -1,0 +1,21 @@
+# Crash log files
+crash.log
+
+# Exclude all .env files, which are likely to contain sentitive data, such as
+# password, private keys, and other secrets. These should not be part of version
+# control as they are data points which are potentially sensitive and subject
+# to change depending on the environment.
+#
+*.env
+
+# Ignore Mac files
+.DS_Store
+
+# Ignore IDE files
+.idea/
+
+# Node modules
+/node_modules
+
+# Visual Studio Code
+.vscode/

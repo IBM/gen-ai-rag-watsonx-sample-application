@@ -13,6 +13,7 @@
 
 const express = require("express");
 const session = require("express-session");
+const helmet = require("helmet");
 const app = express();
 
 require('dotenv').config();
@@ -26,9 +27,37 @@ console.log(`WA_REGION:${process.env.WA_REGION}`);
 console.log(`WA_SERVICE_INSTANCE_ID:${process.env.WA_SERVICE_INSTANCE_ID}`);
 console.log(`WA_INTEGRATION_ID:${process.env.WA_INTEGRATION_ID}`);
 
-app.use(session({ secret: '32732dwjdw238fgs823ow', saveUninitialized: true, resave: true }));
-app.use(express.json())
+app.use(helmet({
+   contentSecurityPolicy: {
+      useDefaults: true,
+      directives: {
+        "script-src": ["'self'", "web-chat.global.assistant.watson.appdomain.cloud"],
+        "default-src": ["'self'", `integrations.${process.env.WA_REGION}.assistant.watson.appdomain.cloud`]
+      },
+      reportOnly: true
+   }
+}));
+
+app.use(session({ 
+   secret: '32732dwjdw238fgs823ow', saveUninitialized: true, resave: true,
+   cookie: {
+    secure: true,
+    httpOnly: true,
+    sameSite: 'strict'
+  }
+}));
+
+app.use(express.json());
 app.use(express.static("public"));
+
+app.get("/assistant-integration.json", (req, resp, next) => {
+   resp.send({
+         integrationID: process.env.WA_INTEGRATION_ID,
+         region: process.env.WA_REGION,
+         serviceInstanceID: process.env.WA_SERVICE_INSTANCE_ID
+   });
+   next();
+});
 
 var http = require('http');
 
