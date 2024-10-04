@@ -7,7 +7,6 @@ https://cloud.ibm.com/catalog/7a4d68b4-cf8b-40cd-a3d1-f49aff526eb3/architecture/
 Follow the steps [here](https://github.com/terraform-ibm-modules/stack-retrieval-augmented-generation/blob/main/README.md#monitor-the-build-and-application-deployment) to monitor the deployment and launch the sample application.
 
 
-
 ---
 
 
