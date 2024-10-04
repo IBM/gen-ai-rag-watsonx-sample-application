@@ -13,7 +13,6 @@ __Removing Assistant workspace__
 
 To fully remove the Assistant workspace, Navigate left bottom menu to Assistant settings>Delete assistant. Note that you will need to "Deploy again" the Deployable Architecture - Workload - Sample RAG App Configuration". This will create a new Assistant and redeploy the sample application with IDs of the new Assistant.
 
-
 ---
 
 Steps to remove deployments and configurations made by v1.x of the [RAG Pattern deployable architecture](
