@@ -1,5 +1,20 @@
 ## Configuration steps for watsonx Assistant artifacts
 
+
+The latest v2.0.0 of the [RAG Pattern deployable architecture](
+https://cloud.ibm.com/catalog/7a4d68b4-cf8b-40cd-a3d1-f49aff526eb3/architecture/Retrieval_Augmented_Generation_Pattern-5fdd0045-30fc-4013-a8bc-6db9d5447a52-global) does not require any manual steps to configure watsonx Assistant. The deployable architecure automatically adds action and search skill to watsonx Assistant and configures Conversational Search with the provisioned Elasticsearch credentials and a keyword index of the sample data.
+
+Follow the steps [here](https://github.com/terraform-ibm-modules/stack-retrieval-augmented-generation/blob/main/README.md#monitor-the-build-and-application-deployment) to monitor the deployment and launch the sample application.
+
+
+
+---
+
+
+Configurations steps for v1.x of [RAG Pattern deployable architecture](
+https://cloud.ibm.com/catalog/7a4d68b4-cf8b-40cd-a3d1-f49aff526eb3/architecture/Retrieval_Augmented_Generation_Pattern-5fdd0045-30fc-4013-a8bc-6db9d5447a52-global) are provided below.
+
+
 The *Gen AI Sample Application* requires configurations on watsonx Assistant to enable integration with Watson Discovery (for content search) and watsonx.ai (for generative ai tasks).
 
 Follow the steps below to configure watsonx Assistant.
@@ -204,5 +219,3 @@ Ask the question:
 Response to the question confirms successful integration of watsonx Assistant with Watson Discovery and watsonx.ai.
 
 **This completes the watsonx Assistant artifact configuration.**
-
-
