@@ -24,6 +24,7 @@ echo "APPLICATION_HOME:" $APPLICATION_HOME
 
 echo "Starting $APPLICATION_HOME/main.js..."
 cd $APPLICATION_HOME
+mkdir -p logs
 nohup node main.js &>$APPLICATION_HOME/logs/main_nohup.out &
 
 #cat $APPLICATION_HOME/logs/main_nohup.out
