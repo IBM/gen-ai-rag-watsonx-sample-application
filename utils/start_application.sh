@@ -25,7 +25,7 @@ fi
 echo "Starting Generative AI RAG watsonx Sample Application frontend service."
 
 cd $APPLICATION_HOME
-./utils/apply_configurations_from_envars.sh
+# ./utils/apply_configurations_from_envars.sh
 ./utils/start_main.sh
 
 #echo "to check logs:"
