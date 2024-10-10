@@ -67,7 +67,14 @@ PUBLIC_INGRESS_SUBDOMAIN=$(get_env cluster_public_ingress_subdomain "")
 if [[ -z "$PUBLIC_INGRESS_SUBDOMAIN" ]]; then
   PUBLIC_INGRESS_SUBDOMAIN=$(kubectl get ingresscontrollers -n openshift-ingress-operator -o=custom-columns='DOMAIN:.spec.domain,NAME:.metadata.name' --no-headers | grep ingress-public | cut -d ' ' -f1)
 fi
-yq write --doc "${PUBLIC_ROUTE_DOC_INDEX}" "${DEPLOYMENT_FILE}" "spec.host" "gen-ai-rag-sample-app-tls-dev.${PUBLIC_INGRESS_SUBDOMAIN}" > "${TEMP_DEPLOYMENT_FILE}"
+
+if [[ "$(get_env pipeline_namespace)" == *"cd"* ]]; then
+  ROUTE_ENVIRONMENT="prod"
+else
+  ROUTE_ENVIRONMENT="dev"
+fi
+
+yq write --doc "${PUBLIC_ROUTE_DOC_INDEX}" "${DEPLOYMENT_FILE}" "spec.host" "gen-ai-rag-sample-app-tls-${ROUTE_ENVIRONMENT}.${PUBLIC_INGRESS_SUBDOMAIN}" > "${TEMP_DEPLOYMENT_FILE}"
 mv "${TEMP_DEPLOYMENT_FILE}" "${DEPLOYMENT_FILE}"
 
 # For polyglot practice
