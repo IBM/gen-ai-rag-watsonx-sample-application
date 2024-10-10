@@ -73,8 +73,6 @@ mv "${TEMP_DEPLOYMENT_FILE}" "${DEPLOYMENT_FILE}"
 # For polyglot practice
 source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/.env.deploy.sh
 
-# Portieris is not compatible with image name containing both tag and sha. Removing the tag
-IMAGE="${IMAGE#*"@"}"
 sed -i "s~^\([[:blank:]]*\)image:.*$~\1image: ${IMAGE}~" "${DEPLOYMENT_FILE}"
 
 DEPLOYMENT_DOC_INDEX=$(yq read --doc "*" --tojson "$DEPLOYMENT_FILE" | jq -r 'to_entries | .[] | select(.value.kind | ascii_downcase=="deployment") | .key')
