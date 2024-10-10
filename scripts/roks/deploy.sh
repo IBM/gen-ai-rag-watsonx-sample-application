@@ -17,17 +17,14 @@ WA_REGION=$(get_env watsonx_assistant_region "us-south")
 WA_INTEGRATION_ID=$(get_env watsonx_assistant_integration_id "")
 APP_FLAVOR=$(get_env app-flavor "")
 
-source="$WORKSPACE/$(load_repo app-repo path)/$(get_env source "")"
-build_context="$(realpath -m "$source")"
-
-setProperty "WA_SERVICE_INSTANCE_ID" "$WA_SERVICE_INSTANCE_ID" "$build_context/app.properties"
-setProperty "WA_REGION" "$WA_REGION" "$build_context/app.properties"
-setProperty "WA_INTEGRATION_ID" "$WA_INTEGRATION_ID" "$build_context/app.properties"
-setProperty "APP_FLAVOR" "$APP_FLAVOR" "$build_context/app.properties"
+setProperty "WA_SERVICE_INSTANCE_ID" "$WA_SERVICE_INSTANCE_ID" "$WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/app.properties"
+setProperty "WA_REGION" "$WA_REGION" "$WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/app.properties"
+setProperty "WA_INTEGRATION_ID" "$WA_INTEGRATION_ID" "$WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/app.properties"
+setProperty "APP_FLAVOR" "$APP_FLAVOR" "$WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/app.properties"
 
 # create configmap from app.properties
 #todo: prefix this
-oc create configmap gen-ai-rag-sample-app-configmap --from-env-file=$build_context/app.properties -o yaml --dry-run=client | oc apply -f -
+oc create configmap gen-ai-rag-sample-app-configmap --from-env-file=$WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/app.properties -o yaml --dry-run=client | oc apply -f -
 
 echo "Updating the namespace in the deployment file ${DEPLOYMENT_FILE}"
 NAMESPACE_DOC_INDEX=$(yq read --doc "*" --tojson "${DEPLOYMENT_FILE}" | jq -r 'to_entries | .[] | select(.value.kind | ascii_downcase=="namespace") | .key')
@@ -67,14 +64,19 @@ PUBLIC_INGRESS_SUBDOMAIN=$(get_env cluster_public_ingress_subdomain "")
 if [[ -z "$PUBLIC_INGRESS_SUBDOMAIN" ]]; then
   PUBLIC_INGRESS_SUBDOMAIN=$(kubectl get ingresscontrollers -n openshift-ingress-operator -o=custom-columns='DOMAIN:.spec.domain,NAME:.metadata.name' --no-headers | grep ingress-public | cut -d ' ' -f1)
 fi
-yq write --doc "${PUBLIC_ROUTE_DOC_INDEX}" "${DEPLOYMENT_FILE}" "spec.host" "gen-ai-rag-sample-app-tls-dev.${PUBLIC_INGRESS_SUBDOMAIN}" > "${TEMP_DEPLOYMENT_FILE}"
+
+if [[ "$(get_env pipeline_namespace)" == *"cd"* ]]; then
+  ROUTE_ENVIRONMENT="prod"
+else
+  ROUTE_ENVIRONMENT="dev"
+fi
+
+yq write --doc "${PUBLIC_ROUTE_DOC_INDEX}" "${DEPLOYMENT_FILE}" "spec.host" "gen-ai-rag-sample-app-tls-${ROUTE_ENVIRONMENT}.${PUBLIC_INGRESS_SUBDOMAIN}" > "${TEMP_DEPLOYMENT_FILE}"
 mv "${TEMP_DEPLOYMENT_FILE}" "${DEPLOYMENT_FILE}"
 
 # For polyglot practice
 source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/.env.deploy.sh
 
-# Portieris is not compatible with image name containing both tag and sha. Removing the tag
-IMAGE="${IMAGE#*"@"}"
 sed -i "s~^\([[:blank:]]*\)image:.*$~\1image: ${IMAGE}~" "${DEPLOYMENT_FILE}"
 
 DEPLOYMENT_DOC_INDEX=$(yq read --doc "*" --tojson "$DEPLOYMENT_FILE" | jq -r 'to_entries | .[] | select(.value.kind | ascii_downcase=="deployment") | .key')

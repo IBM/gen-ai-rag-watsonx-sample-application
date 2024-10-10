@@ -55,9 +55,15 @@ IBMCLOUD_TOOLCHAIN_ID="$(jq -r .toolchain_guid /toolchain/toolchain.json)"
 IBMCLOUD_IKS_REGION="$(get_env dev-region | awk -F ":" '{print $NF}')"
 IBMCLOUD_IKS_CLUSTER_NAMESPACE="$(get_env dev-cluster-namespace)"
 IBMCLOUD_IKS_CLUSTER_NAME="$(get_env cluster-name)"
-REGISTRY_URL="$(load_artifact app-image name| awk -F/ '{print $1}')"
-IMAGE="$(load_artifact app-image name)"
-DIGEST="$(load_artifact app-image digest)"
+
+if [[ "$(get_env pipeline_namespace)" == *"cd"* ]]; then
+  REGISTRY_URL=$(echo "${IMAGE}" | awk -F/ '{print $1}')
+else
+  REGISTRY_URL="$(load_artifact app-image name| awk -F/ '{print $1}')" 
+  IMAGE="$(load_artifact app-image name)"
+  DIGEST="$(load_artifact app-image digest)"
+fi
+
 IMAGE_PULL_SECRET_NAME="ibmcloud-toolchain-${IBMCLOUD_TOOLCHAIN_ID}-${REGISTRY_URL}"
 DEPLOYMENT_FILE="$(cat /config/deployment-file)"
 CLUSTER_TYPE="IKS"
