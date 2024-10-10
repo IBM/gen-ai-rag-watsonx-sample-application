@@ -101,7 +101,7 @@ if [ "$status" = failure ]; then
   exit 1
 fi
 
-export APPURL="https://gen-ai-rag-sample-app-tls-dev.${PUBLIC_INGRESS_SUBDOMAIN}"
+export APPURL="https://gen-ai-rag-sample-app-tls-${ROUTE_ENVIRONMENT}.${PUBLIC_INGRESS_SUBDOMAIN}"
 
 if [ -z  "${APPURL}"  ] || [[  "${APPURL}" = "null"  ]] || [[  "${APPURL}" = ":"  ]]; then
     echo "Unable to get Application URL....."
