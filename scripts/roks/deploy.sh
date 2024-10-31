@@ -126,7 +126,7 @@ if [[ "$(get_env pipeline_namespace)" == *"cd"* ]]; then
             --arg tags "$(jq -r '.app_artifacts.tags' ${INVENTORY_PATH}/${INVENTORY_ENTRY})" \
             --arg ce_type "$(jq -r '.app_artifacts.code_engine_deployment_type' ${INVENTORY_PATH}/${INVENTORY_ENTRY})" \
             --arg dev_app_url "$(jq -r '.app_artifacts.dev_app_url' ${INVENTORY_PATH}/${INVENTORY_ENTRY})" \
-            --arg prod_app_url "${APPLICATION_URL}" \
+            --arg prod_app_url "${APPURL}" \
             '.name=$name | .tags=$tags | .code_engine_deployment_type=$ce_type | .dev_app_url=$dev_app_url | .prod_app_url=$prod_app_url ')
 
         INVENTORY_TOKEN_PATH="./inventory-token"
