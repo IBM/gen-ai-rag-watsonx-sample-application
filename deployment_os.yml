@@ -43,6 +43,7 @@ spec:
         app: gen-ai-rag-sample-app
     spec:
       serviceAccountName: gen-ai-rag-sample-app-sa
+      automountServiceAccountToken: false
       containers:
         - name: gen-ai-rag-sample-app
           image: gen-ai-rag-sample-app
